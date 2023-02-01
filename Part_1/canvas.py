@@ -23,8 +23,16 @@ def on_mouse_up(event):
 def on_right_click(event):
     w.delete("all")
 
+def clear_btn_click():
+    w.delete("all")
+
+
 top = Tk()
 w = Canvas(top, width=500, height=500)
+
+button = Button(top, text='Clear', width=25, command=clear_btn_click)
+button.pack()
+
 w.pack()
 w.bind("<ButtonPress-1>", on_mouse_down)
 w.bind("<B1-Motion>", on_mouse_dragged)
