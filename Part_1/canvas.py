@@ -13,7 +13,7 @@ def on_mouse_dragged(event):
     if not start_x or not start_y:
         start_x , start_y = x, y
     print("start_x: {}, start_y: {}, x: {}, y: {}".format(start_x, start_y, x, y))
-    w.create_line(start_x, start_y, x, y, fill="black")
+    w.create_line(start_x, start_y, x, y, fill="blue")
     start_x, start_y = x, y
 
 def on_mouse_up(event):
