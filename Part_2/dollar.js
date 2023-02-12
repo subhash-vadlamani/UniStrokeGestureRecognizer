@@ -202,6 +202,7 @@ function Resample(points, n)
 			var q = new Point(qx, qy);
 			newpoints[newpoints.length] = q; // append new point 'q'
 			points.splice(i, 0, q); // insert 'q' at position i in points s.t. 'q' will be the next i
+			// confirm why this is necessary
 			D = 0.0;
 		}
 		else D += d;
