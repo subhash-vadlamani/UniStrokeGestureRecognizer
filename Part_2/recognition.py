@@ -1,6 +1,7 @@
 import math
 import numpy as np
 import itertools
+from numpy.linalg import linalg
 
 
 phi = 0.5 * (-1 + math.sqrt(5))
@@ -14,29 +15,43 @@ class Recognizer(object):
         self.square_size = square_size
         self.templates = []
     def resample(self, points, n):
-        I =float( pathLength(points) / n-1 )
+        I = pathLength(points) / float(n-1)
         newPoints = [points[0]]
         D = 0.0
-        for i in range(1, len(points)):
-            currentPoint = points[i-1]
+        i=1
+
+        while i < len(points):
+            currentPoint = points[i - 1]
             nextPoint = points[i]
             d = getDistance(currentPoint, nextPoint)
             if D + d >= I:
-                distanceDifference = float((I - D)/d)
+                distanceDifference = float((I - D) / d)
                 q = [0., 0.]
                 q[0] = currentPoint[0] + distanceDifference * (nextPoint[0] - currentPoint[0])
-                q[1] = currentPoint[1] + distanceDifference * (nextPoint[1] - nextPoint[1])
+                q[1] = currentPoint[1] + distanceDifference * (nextPoint[1] - currentPoint[1])
                 newPoints.append(q)
                 points.insert(i, q)
-                D = 0.
+                D = 0.0
             else:
                 D += d
-        if len(newPoints) == n - 1:
-            newPoints.append(points[-1:][0])
+            i += 1
+        if len(newPoints) == n - 1:  # Fix a possible roundoff error
+            newPoints.append(points[0])
         return newPoints
 
+        # for i in range(1, len(points)):
+        #
+        # if len(newPoints) == n - 1:
+        #     newPoints.append(points[-1:][0])
+        # return newPoints
+
     def addTemplate(self, template):
+        print("%%%%%%%%%%")
+        print("Number of template points before is : {}".format(len(template.points)))
+        print("Num points is : {}".format(numPoints))
         template.points = self.resample(template.points, numPoints)
+        print("number of template points afer is : {}".format(len(template.points)))
+        print("%%%%%%%%%%%%%%%")
         template.points = self.rotateToZero(template.points)
         template.points = self.scaleToSquare(template.points)
         template.points = self.translateToOrigin(template.points)
@@ -49,7 +64,7 @@ class Recognizer(object):
 
     def rotateToZero(self, points):
         rotationAngle = self.indicativeAngle(points)
-        newPoints = rotate2D(points, 0, rotationAngle * -1)
+        newPoints = rotate2D(points, 0, -rotationAngle)
         return newPoints
 
     def rotateBy(self, points, angle):
@@ -88,8 +103,9 @@ class Recognizer(object):
 
     def recognize(self, points):
         print("Number of points before is : {}".format(len(points)))
+        print("the num points varfiable is : {}".format(numPoints))
 
-        points = self.resample(list(points), numPoints)
+        points = self.resample((points), numPoints)
         print("Number of points after is : {}".format(len(points)))
         points = self.rotateToZero(points)
         points = self.scaleToSquare(points)
@@ -98,7 +114,7 @@ class Recognizer(object):
         b = np.inf
         selected_template = None
         for template in self.templates:
-            d = self.distanceAtBestAngle(points, template.points, self.angle_range * -1, self.angle_range, self.angle_step)
+            d = self.distanceAtBestAngle(points, template.points, -self.angle_range, self.angle_range, self.angle_step)
             if d < b:
                 b = d
                 selected_template = template
@@ -111,7 +127,7 @@ class Recognizer(object):
         x_2 = (1 - phi) * angle_a + phi * angle_b
         f_2 = self.distanceAtAngle(points, template, x_2)
 
-        while np.abs(angle_b, angle_a) > angle_step:
+        while np.abs(angle_b - angle_a) > angle_step:
             if f_1 < f_2:
                 angle_b = x_2
                 x_2 = x_1
@@ -139,21 +155,20 @@ def rotate2D(pts, cnt, angle=np.pi/4):
 
 
 def getDistance(point1, point2):
-    dx = point2[0] - point1[0]
-    dy = point2[1] - point1[1]
-
-    return float(math.sqrt(dx * dx + dy * dy))
+    return linalg.norm(np.array(point2) - np.array(point1))
 
 def pathLength(points):
-    d = 0.0
-    for i in range(1, len(points)):
-        d += getDistance(points[i-1], points[i])
-    return d
+    length = 0
+    for (i, j) in zip(points, points[1:]):
+        length += getDistance(i, j)
+    return length
+    # d = 0.0
+    # for i in range(1, len(points)):
+    #     d += getDistance(points[i-1], points[i])
+    # return d
 
 
 def pathDistance(path1, path2):
-    print("The length of path1 is : {}".format(len(path1)))
-    print("The length of path2 is : {}".format(len(path2)))
     if  len(path1) != len(path2):
         raise Exception("Path lengths are not the same.")
     d = 0
