@@ -4,7 +4,7 @@ import itertools
 from numpy.linalg import linalg
 
 
-phi = 0.5 * (-1 + math.sqrt(5))
+phi = 0.5 * (-1 + np.sqrt(5))
 numPoints = 64
 
 class Recognizer(object):
@@ -15,8 +15,13 @@ class Recognizer(object):
         self.square_size = square_size
         self.templates = []
     def resample(self, points, n):
+        """
+        This function calculates the distance that each point should be from the next consecutive points if there are
+        supposed to be 'n' points in the figure and makes sure to either reduce the number of points or increase the points
+        to match the required number of points 'n' in the figure.
+        """
         I = pathLength(points) / float(n-1)
-        newPoints = [points[0]]
+        newPoints = [points[0]] # stores the resampled number of points
         D = 0.0
         i=1
 
@@ -39,19 +44,9 @@ class Recognizer(object):
             newPoints.append(points[0])
         return newPoints
 
-        # for i in range(1, len(points)):
-        #
-        # if len(newPoints) == n - 1:
-        #     newPoints.append(points[-1:][0])
-        # return newPoints
 
     def addTemplate(self, template):
-        print("%%%%%%%%%%")
-        print("Number of template points before is : {}".format(len(template.points)))
-        print("Num points is : {}".format(numPoints))
         template.points = self.resample(template.points, numPoints)
-        print("number of template points afer is : {}".format(len(template.points)))
-        print("%%%%%%%%%%%%%%%")
         template.points = self.rotateToZero(template.points)
         template.points = self.scaleToSquare(template.points)
         template.points = self.translateToOrigin(template.points)
@@ -102,76 +97,73 @@ class Recognizer(object):
         return newPoints[1:]
 
     def recognize(self, points):
-        print("Number of points before is : {}".format(len(points)))
-        print("the num points varfiable is : {}".format(numPoints))
 
-        points = self.resample((points), numPoints)
-        print("Number of points after is : {}".format(len(points)))
-        points = self.rotateToZero(points)
-        points = self.scaleToSquare(points)
-        points = self.translateToOrigin(points)
+        current_points = self.resample(list(points), numPoints)
+        current_points = self.rotateToZero(current_points)
+        current_points = self.scaleToSquare(current_points)
+        current_points = self.translateToOrigin(current_points)
 
         b = np.inf
         selected_template = None
         for template in self.templates:
-            d = self.distanceAtBestAngle(points, template.points, -self.angle_range, self.angle_range, self.angle_step)
+            d = self.distanceAtBestAngle(current_points, template.points, -self.angle_range, self.angle_range, self.angle_step)
             if d < b:
                 b = d
                 selected_template = template
-        score = 1 - b / (0.5 * np.sqrt(self.square_size**2 + self.square_size**2))
+        score = 1 - b / (0.5 * np.sqrt(self.square_size ** 2 + self.square_size ** 2))
         return selected_template, score
 
     def distanceAtBestAngle(self, points, template, angle_a, angle_b, angle_step):
-        x_1 = phi * angle_a + (1 - phi) * angle_b
-        f_1 = self.distanceAtAngle(points, template, x_1)
-        x_2 = (1 - phi) * angle_a + phi * angle_b
-        f_2 = self.distanceAtAngle(points, template, x_2)
+        angle_1 = phi * angle_a + (1 - phi) * angle_b
+        distance_1 = self.distanceAtCurrentAngle(points, template, angle_1)
+        angle_2 = (1 - phi) * angle_a + phi * angle_b
+        distance_2 = self.distanceAtCurrentAngle(points, template, angle_2)
 
         while np.abs(angle_b - angle_a) > angle_step:
-            if f_1 < f_2:
-                angle_b = x_2
-                x_2 = x_1
-                f_2 = f_1
-                x_1 = phi * angle_a + (1 - phi) * angle_b
-                f_1 = self.distanceAtAngle(points, template, x_1)
+            if distance_1 < distance_2:
+                angle_b = angle_2
+                angle_2 = angle_1
+                distance_2 = distance_1
+                angle_1 = phi * angle_a + (1 - phi) * angle_b
+                distance_1 = self.distanceAtCurrentAngle(points, template, angle_1)
             else:
-                angle_a = x_1
-                x_1 = x_2
-                f_1 = f_2
-                x_2 = (1 - phi) * angle_b + phi * angle_b
-                f_2 = self.distanceAtAngle(points, template, x_2)
-        return min(f_1, f_2)
+                angle_a = angle_1
+                angle_1 = angle_2
+                distance_1 = distance_2
+                angle_2 = (1 - phi) * angle_a + phi * angle_b
+                distance_2 = self.distanceAtCurrentAngle(points, template, angle_2)
+        return min(distance_1, distance_2)
 
-    def distanceAtAngle(self, points, template, angle):
+    def distanceAtCurrentAngle(self, points, template, angle):
         newPoints = self.rotateBy(points, angle)
         d = pathDistance(newPoints, template)
         return d
 
 
 
-def rotate2D(pts, cnt, angle=np.pi/4):
-    # understand how this works
+def rotate2D(pts, cnt, angle= np.pi / 4):
     return np.dot(np.array(pts) - cnt, np.array([[np.cos(angle), np.sin(angle)], [-np.sin(angle), np.cos(angle)]])) + cnt
 
 
 def getDistance(point1, point2):
-    return linalg.norm(np.array(point2) - np.array(point1))
+    x1, y1 = point1[0], point1[1]
+    x2, y2 = point2[0], point2[1]
+
+    distance = np.sqrt((x2 - x1) ** 2 + (y2 - y1) ** 2)
+    return distance
 
 def pathLength(points):
-    length = 0
-    for (i, j) in zip(points, points[1:]):
-        length += getDistance(i, j)
-    return length
-    # d = 0.0
-    # for i in range(1, len(points)):
-    #     d += getDistance(points[i-1], points[i])
-    # return d
+    d = 0.0
+    for i in range(1, len(points)):
+        d += getDistance(points[i-1], points[i])
+    return d
 
 
 def pathDistance(path1, path2):
-    if  len(path1) != len(path2):
-        raise Exception("Path lengths are not the same.")
+    if len(path1) != len(path2):
+        raise Exception("Path lengths have to be the same to do the comparision")
     d = 0
-    for p_1, p_2 in zip(path1, path2):
-        d = d + getDistance(p_1, p_2)
+
+    for i in range(0, len(path1)):
+        d = d + getDistance(path1[i], path2[i])
     return d / len(path1)
