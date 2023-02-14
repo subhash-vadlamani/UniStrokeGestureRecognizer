@@ -1,12 +1,13 @@
 from tkinter import *
-import time
-import math
-from recognition import Recognizer
-from templates import *
+from jspython import *
+# import time
+# import math
+# from recognition import Recognizer
+# from templates import *
 
-recognizer = Recognizer()
-for template in templates:
-	recognizer.addTemplate(template)
+# recognizer = Recognizer()
+# for template in templates:
+# 	recognizer.addTemplate(template)
 
 
 
@@ -57,10 +58,11 @@ class Screen:
         self.start_x, self.start_y = None, None
         print(self.line_points)
         print("The length of line_points in the main file is : {}".format(len(self.line_points)))
-        matched_template, score = recognizer.recognize(self.line_points)
+        res = Recognize(self.line_points)
+        matched_template, score = res.name, res.score
 
-        self.detected_shape.set(matched_template.name)
-        self.detected_score.set("{0:.2f}".format(score * 100))
+        self.detected_shape.set(matched_template)
+        self.detected_score.set("{0:.2f}".format(score))
         # print("###############")
         # print("The Matched template is : {}".format(matched_template.name))
         # print("The score is : {}".format(score * 100))
