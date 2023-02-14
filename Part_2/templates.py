@@ -1,6 +1,11 @@
 import numpy as np
 
 
+"""
+This file contains the templates for all the 16 shapes. We store each template as a tuple where the first
+element is the name of the template and the second element is the array representing the points in the template.
+"""
+
 class Template:
     def __init__(self, name, points):
         super(Template, self).__init__()
@@ -142,4 +147,6 @@ pigtail = ("pigtail",
 templates = [triangle, x, rectangle, circle, check, caret, zig_zag, arrow,
              left_square_bracket, right_square_bracket, v, delete,
              left_curly_brace, right_curly_brace, star, pigtail]
+
+# create the templates object which will be used to load the templates in the system.
 templates = map(lambda x: Template(*x), templates)
