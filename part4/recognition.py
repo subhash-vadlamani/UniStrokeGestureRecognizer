@@ -250,16 +250,27 @@ class Recognizer(object):
         print(allgestures.keys())
 
         dir_path = os.path.dirname(os.path.realpath(__file__))
+        print(dir_path)
 
         # print the current directories in the folder
         for item in os.listdir(dir_path):
             if os.path.isdir(os.path.join(dir_path, item)):
                 print(item)
+
+        print("#############")
         # print(allgestures)
-        dir_path = "user_logs"
+        dir_path = os.path.join(dir_path, 'user_logs')
         os.chdir(dir_path)
         new_dir_name = user
-        os.mkdir(new_dir_name)
+
+        for item in os.listdir(dir_path):
+            if os.path.isdir(os.path.join(dir_path, item)):
+                print(item)
+        print("%%%%%%%%%%%%%")
+        print(dir_path)
+
+        if not os.path.exists(new_dir_name):
+            os.mkdir(new_dir_name)
         os.chdir(new_dir_name)
 
 

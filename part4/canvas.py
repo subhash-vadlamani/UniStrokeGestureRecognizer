@@ -17,7 +17,7 @@ for template in templates:
 #              'left_square_bracket', 'right_square_bracket', 'v', 'delete',
 #              'left_curly_brace', 'right_curly_brace', 'star', 'pigtail']
 
-templatenames = ['triangle', 'x']
+templatenames = ['triangle', 'x', 'rectangle']
 
 
 class Screen():
