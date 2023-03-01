@@ -1,4 +1,7 @@
 import numpy as np
+import xml.etree.ElementTree as ET
+import xml.dom.minidom as minidom
+import os
 
 
 phi = 0.5 * (-1 + np.sqrt(5))
@@ -243,7 +246,22 @@ class Recognizer(object):
         return d
 
     def store_gesture_in_xml(self, user, allgestures):
-        print(allgestures)
+        print(type(allgestures))
+        print(allgestures.keys())
+
+        dir_path = os.path.dirname(os.path.realpath(__file__))
+
+        # print the current directories in the folder
+        for item in os.listdir(dir_path):
+            if os.path.isdir(os.path.join(dir_path, item)):
+                print(item)
+        # print(allgestures)
+        dir_path = "user_logs"
+        os.chdir(dir_path)
+        new_dir_name = user
+        os.mkdir(new_dir_name)
+        os.chdir(new_dir_name)
+
 
         # for folderName in os.listdir(cwd):
         #     if folderName.startswith('.DS_Store'):
@@ -277,6 +295,37 @@ class Recognizer(object):
         #
         #         gestureMap = OrderedDict(sorted(dict.items(gestureMap)))
         #     dataDict[folderName] = gestureMap
+
+        for key in allgestures.keys():
+            root = ET.Element("Gesture", attrib = {"Name": key, "Subject": user, "Number": key[-2:]})
+
+            for i in range(len(allgestures[key])):
+                point = ET.SubElement(root, 'Point')
+                point.set('X', str(allgestures[key][i][0]))
+                point.set('Y', str(allgestures[key][i][1]))
+                point.set('T', str(allgestures[key][i][2]))
+            xmlstr = minidom.parseString(ET.tostring(root)).toprettyxml(indent="    ")
+            with open("{}.xml".format(key), "w") as f:
+                f.write(xmlstr)
+
+
+        # root = ET.Element("Gesture", attrib={"Name": "sample_name", "Subject": user, "Speed": "Subject_Speed", "Number": "1"})
+        # print(root)
+        # print(type(root))
+        # root.attrib.__setattr__('Name', 'SampleName')
+        # root.attrib.__setattr__('Subject', 'Subject_Name')
+        # root.attrib.__setattr__('Speed', 'Subject_Speed')
+        # root.attrib.__setattr__('Number', "1")
+
+        # for i in range(len(points)):
+        #     point = ET.SubElement(root, 'Point')
+        #     point.set('X', str(points[i][0]))
+        #     point.set('Y', str(points[i][1]))
+        #     point.set('T', str(points[i][2]))
+        #
+        # xmlstr = minidom.parseString(ET.tostring(root)).toprettyxml(indent="    ")
+        # with open("users.xml", "w") as f:
+        #     f.write(xmlstr)
 
 
 
