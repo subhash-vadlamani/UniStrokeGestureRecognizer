@@ -170,6 +170,7 @@ class Screen():
         # print("The username is as follows : {}".format(self.username))
         self.allgestures[templatenames[self.templatecount] + str(self.counter).zfill(2)] = self.gesturepoints
         self.gesturepoints = []
+        # Counter value is set to 10 to collect 10 samples of each gesture from the user.
         if self.counter == 10:
             self.templatecount += 1
             self.counter = 0
